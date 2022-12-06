@@ -1,0 +1,34 @@
+<%- 
+if ! advanced_job_options.blank? then
+
+  require "/share/support/public/ood/ruby/libpath.rb"
+  libpath = getLibPath()
+  require libpath+"/process_advanced_options.rb"
+  options = processAdvancedOptions(advanced_job_options)
+
+end 
+-%>
+---
+batch_connect:
+  template: vnc
+script:
+  native: [ "--cpus-per-task",   "<%= bc_num_cores.to_i %>",
+            "--mem-per-cpu",     "<%= bc_amt_mem.to_i %>G" , 
+            "--nodes",           "<%= bc_num_slots.to_i %>",
+            "--partition",       "<%= partitions.strip() %>"         ,
+            <% if num_gpu.to_i > 0 then %>
+            "--gres",            "gpu:<%= num_gpu.to_i %>" , 
+            <% end %>
+            <% if ! bc_account.blank? then %>
+            "--account",         "<%= bc_account.strip() %>",
+            <% end %>
+            <%-
+            if ! advanced_job_options.blank? then
+              options.each do |key, value|
+            -%>
+            "<%= key.strip() %>",        "<%= value.strip() %>",
+            <%-
+              end
+            end
+            -%>
+          ]

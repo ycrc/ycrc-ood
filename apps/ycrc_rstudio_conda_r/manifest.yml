@@ -1,0 +1,9 @@
+---
+name: RStudio  (Desktop)
+category: Interactive Apps
+subcategory: Desktops
+role: batch_connect
+description: |
+  This app will launch RStudio Desktop with a conda R env on a compute node.
+  <p style="color:red;font-size=40px;">
+

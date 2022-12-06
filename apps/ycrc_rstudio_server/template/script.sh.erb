@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+
+# 06/08/2022 now we need to load StdEnv since it is no longer provided for interactive session
+#            to prevent 'scp' or 'rsync get bogged down with tons of modules loaded
+module load StdEnv
+
+# get the path of the rstudio server image  based on the hostname
+hostname=$(hostname)
+case $hostname in
+  *grace*)
+    IMAGE_PATH="/vast/palmer/apps/services/ood/grace/var_www_ood_apps/singularity";;
+  *farnam*)
+    IMAGE_PATH="/gpfs/ysm/apps/services/ood/var_www_ood_apps/singularity";;
+  *mccleary*)
+    IMAGE_PATH="/vast/palmer/apps/services/ood/mccleary/var_www_ood_apps/singularity";;
+  *ruddle*)
+    IMAGE_PATH="/vast/palmer/apps/services/ood/ruddle/var_www_ood_apps/singularity";;
+  *milgram*)
+    IMAGE_PATH="/gpfs/milgram/apps/services/ood/var_www_ood_apps/singularity";;
+  *)
+    IMAGE_PATH="";;
+esac
+
+module load <%= context.r_version %>
+which R
+export SINGULARITYENV_R_HOME=$(which R)
+RSTUDIO_IMG=${IMAGE_PATH}/rserver-eb-06092022.sif
+
+if [ "x${R_LIBS_USER}" == "x" ]; then
+  # if $R_LIBS_USER is not set, point it to $HOME/project/R/${R_VERSION}
+  R_VERSION=$(R --version|grep -oP  '(?<=R version )\d.\d+')
+  echo $R_VERSION
+  R_LIBS_USER=$HOME/project/R/${R_VERSION}
+  export R_LIBS_USER
+  [ ! -d ${R_LIBS_USER} ] && mkdir -p ${R_LIBS_USER}
+fi
+
+#
+# Start RStudio Server
+#
+
+# PAM auth helper used by RStudio
+export RSTUDIO_AUTH="${PWD}/bin/auth"
+
+# Generate an `rsession` wrapper script
+export RSESSION_WRAPPER_FILE="${PWD}/rsession.sh"
+(
+umask 077
+sed 's/^ \{2\}//' > "${RSESSION_WRAPPER_FILE}" << EOL
+  #!/usr/bin/env bash
+
+  # Log all output from this script
+  export RSESSION_LOG_FILE="${SINGULARITY_HOST_FS}${PWD}/rsession.log"
+  exec &>>"\${RSESSION_LOG_FILE}"
+
+  # Launch the original command
+  echo "Launching rsession..."
+  set -x
+  exec rsession --r-libs-user "${R_LIBS_USER}" "\${@}"
+EOL
+)
+chmod 700 "${RSESSION_WRAPPER_FILE}"
+
+# Set working directory to home directory
+cd "${HOME}"
+
+<% if context.additional_modules != "" %>
+module load <%= context.additional_modules %>
+<% end %>
+
+
+export RSTUDIO_HOME=$HOME/ondemand/rstudio-server
+[ ! -d $RSTUDIO_HOME ] && mkdir -p $RSTUDIO_HOME
+export SINGULARITYENV_PATH=$PATH:/usr/lib/rstudio-server/bin 
+export SINGULARITYENV_LD_LIBRARY_PATH=$LD_LIBRARY_PATH 
+export SINGULARITYENV_R_LIBS_USER=${R_LIBS_USER} 
+
+# remove old PKG_CONFIG_PATH in .Renvrion if exits
+sed -i '/PKG_CONFIG_PATH/d' $HOME/.Renviron
+echo "PKG_CONFIG_PATH=${PKG_CONFIG_PATH}" >> $HOME/.Renviron
+sed -i '/LIBRARY_PATH/d' $HOME/.Renviron
+echo "LIBRARY_PATH=${LIBRARY_PATH}" >> $HOME/.Renviron
+sed -i '/CPATH/d' $HOME/.Renviron
+echo "CPATH=${CPATH}" >> $HOME/.Renviron
+# modules like Seurat will set R_LIBS_SITE. 
+[ -v R_LIBS_SITE ] && sed -i '/R_LIBS_SITE/d' $HOME/.Renviron && echo "R_LIBS_SITE=${R_LIBS_SITE}" >> $HOME/.Renviron
+[ -v R_MAKEVARS_SITE ] && sed -i '/R_MAKEVARS_SITE/d' $HOME/.Renviron && echo "R_MAKEVARS_SITE=${R_MAKEVARS_SITE}" >> $HOME/.Renviron
+# rticulate needs PYTHONPATH
+[ -v PYTHONPATH ] && sed -i '/PYTHONPATH/d' $HOME/.Renviron && echo "PYTHONPATH=${PYTHONPATH}" >> $HOME/.Renviron
+[ -v ZIENA_LICENSE_NETWORK_ADDR ] && sed -i '/ZIENA_LICENSE_NETWORK_ADDR/d' $HOME/.Renviron && echo "ZIENA_LICENSE_NETWORK_ADDR=\"license.hpc.yale.internal:8349\"" >> $HOME/.Renviron
+[ -v KNITRODIR ] && sed -i '/KNITRODIR/d' $HOME/.Renviron && echo "KNITRODIR=$KNITRODIR" >> $HOME/.Renviron
+
+# Launch the RStudio Server
+echo "Starting up rserver..."
+set -x
+singularity exec -B $RSTUDIO_HOME:/var/lib/rstudio-server \
+  -B /run/dbus:/run/dbus \
+  ${RSTUDIO_IMG} rserver \
+  --server-working-dir=$RSTUDIO_HOME \
+  --server-pid-file=$RSTUDIO_HOME/rstudio-server.pid \
+  --server-data-dir=$RSTUDIO_HOME --server-user=$(whoami) \
+  --secure-cookie-key-file=$RSTUDIO_HOME/secure-cookie-key \
+  --www-port ${port} \
+  --auth-none 0 \
+  --auth-pam-helper-path "${SINGULARITY_HOST_FS}${RSTUDIO_AUTH}" \
+  --auth-encrypt-password 0 \
+  --rsession-path "${SINGULARITY_HOST_FS}${RSESSION_WRAPPER_FILE}"

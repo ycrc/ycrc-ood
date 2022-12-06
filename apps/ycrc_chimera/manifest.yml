@@ -1,0 +1,7 @@
+---
+name: Chimera
+category: Interactive Apps
+subcategory: GUIs
+role: batch_connect
+description: |
+  This app will launch Chimera on a compute node.

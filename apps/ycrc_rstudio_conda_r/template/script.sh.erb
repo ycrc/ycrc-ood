@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+# 06/08/2022 now we need to load StdEnv since it is no longer provided for interactive session
+#            to prevent 'scp' or 'rsync get bogged down with tons of modules loaded
+module load StdEnv
+
+# Change working directory to user's home directory
+cd "${HOME}"
+
+# source the user's .bashrc
+source ${HOME}/.bashrc
+
+# Reset module environment (may require login shell for some HPC clusters)
+module purge 
+
+
+# Start up desktop
+echo "Launching desktop '<%= context.desktop %>'..."
+(
+source "<%= session.staged_root.join("desktops", "#{context.desktop}.sh") %>"
+) &
+
+module load <%= context.version %>
+
+<% if context.conda_r_env != "" %>
+module load miniconda
+source activate <%= context.conda_r_env.strip() %>
+<% else %>
+echo "must provide a conda env with R"
+exit 0
+<% end %>
+
+
+<% if context.additional_modules != "" %>
+module load <%= context.additional_modules %>
+<% end %>
+
+<% if context.glibc == "1" %>
+module load GCCcore/11.2.0
+<% else %>
+# set LD_LIBRARY_PATH so that rstudio will be able to find the right glibc from the Conda environment
+export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
+<% end %>
+rstudio

@@ -1,0 +1,7 @@
+---
+name: Matlab 
+category: Interactive Apps
+subcategory: GUIs
+role: batch_connect
+description: |
+  This app will launch Matlab desktop on a compute node.
