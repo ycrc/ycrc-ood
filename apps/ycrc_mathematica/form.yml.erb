@@ -8,7 +8,7 @@ libpath = host_specs[:libpath]
 hostname = host_specs[:host]
 
 require libpath+"/process_partitions.rb"
-partitions = processPartitions()
+partitions = processPartitions(libpath)
 %>
 ---
 cluster: <%= hostname %>
@@ -72,6 +72,11 @@ attributes:
   bc_account:
     label: "Slurm account (optional)"
     help: "This field is needed ONLY IF you are working with a different group than your default group. Leave it blank if you don't know what to provide."
+  conda_env:
+    widget: "text_field"
+    label:  "Conda environment (optional)"
+    value:  ""
+    help:   "Specify a conda environment."
   additional_modules:
     widget: "text_field"
     label:  "Additional modules for <%= app_name %> (optional)"
@@ -102,5 +107,6 @@ form:
   - bc_email_on_started
   - advanced_options
   - bc_account
+  - conda_env
   - additional_modules
   - advanced_job_options

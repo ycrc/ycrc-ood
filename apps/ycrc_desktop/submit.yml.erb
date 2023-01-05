@@ -2,8 +2,9 @@
 <%- 
 if ! advanced_job_options.blank? then
 
-  require "/share/support/public/ood/ruby/libpath.rb"
-  libpath = getLibPath()
+  require "/share/support/public/ood/ruby/hostspecs.rb"
+  host_specs = getHostSpecs()
+  libpath = host_specs[:libpath]
   require libpath+"/process_advanced_options.rb"
   options = processAdvancedOptions(advanced_job_options)
 

@@ -7,7 +7,7 @@ host_specs = getHostSpecs()
 libpath = host_specs[:libpath]
 hostname = host_specs[:host]
 require libpath+"/process_partitions.rb"
-partitions = processPartitions()
+partitions = processPartitions(libpath)
 %>
 ---
 cluster: <%= hostname %>

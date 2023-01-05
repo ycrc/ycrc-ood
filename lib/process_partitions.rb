@@ -48,9 +48,9 @@ def updatePartitions(cmd, username, partition_file)
   f.close
 end
 
-def processPartitions()
+def processPartitions(libpath)
 
-  cmd = "/gpfs/apps/services/ood/var_www_ood_apps/lib/partitions.sh"
+  cmd = libpath+"/partitions.sh"
   username = ENV['USER']
   partition_file = ENV['HOME'] + "/ondemand/.partitions"
   age = 86400  # in seconds = one day
