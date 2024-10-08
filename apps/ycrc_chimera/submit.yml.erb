@@ -20,6 +20,9 @@ script:
             <% if num_gpu.to_i > 0 then %>
             "--gres",            "gpu:<%= num_gpu.to_i %>" , 
             <% end %>
+            <% if ! reservation.blank? then %>
+            "--reservation",     "<%= reservation.strip() %>",
+            <% end %>
             <% if ! bc_account.blank? then %>
             "--account",         "<%= bc_account.strip() %>",
             <% end %>
@@ -32,4 +35,6 @@ script:
               end
             end
             -%>
+            "--qos",             "interactive",
+            "--job-name",        "ood-chimera"            
           ]

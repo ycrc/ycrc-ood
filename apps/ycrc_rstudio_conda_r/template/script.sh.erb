@@ -4,9 +4,6 @@
 #            to prevent 'scp' or 'rsync get bogged down with tons of modules loaded
 module load StdEnv
 
-# Change working directory to user's home directory
-cd "${HOME}"
-
 # source the user's .bashrc
 source ${HOME}/.bashrc
 
@@ -20,25 +17,27 @@ echo "Launching desktop '<%= context.desktop %>'..."
 source "<%= session.staged_root.join("desktops", "#{context.desktop}.sh") %>"
 ) &
 
-module load <%= context.version %>
+which eog
+if [ $? == 0 ]; then
+  eog -f ./wait.png &
+  pid_saved=$!
+else
+  which eom
+  if [ $? == 0 ]; then
+    eom -f ./wait.png &
+    pid_saved=$!
+  fi
+fi
 
-<% if context.conda_r_env != "" %>
+# Change working directory to user's home directory
+cd "${HOME}"
+
 module load miniconda
-source activate <%= context.conda_r_env.strip() %>
-<% else %>
-echo "must provide a conda env with R"
-exit 0
-<% end %>
+conda activate <%= context.conda_r_env.strip() %>
 
+which rstudio
+[ $? != 0 ] && mamba install -y rstudio-desktop
 
-<% if context.additional_modules != "" %>
-module load <%= context.additional_modules %>
-<% end %>
+[[ -v pid_saved ]] && kill $pid_saved
 
-<% if context.glibc == "1" %>
-module load GCCcore/11.2.0
-<% else %>
-# set LD_LIBRARY_PATH so that rstudio will be able to find the right glibc from the Conda environment
-export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
-<% end %>
 rstudio

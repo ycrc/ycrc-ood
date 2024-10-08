@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+
+# 06/08/2022 now we need to load StdEnv since it is no longer provided for non-interactive session
+#            to prevent 'scp' or 'rsync get bogged down with tons of modules loaded
+module load StdEnv
+
+# Benchmark info
+echo "TIMING - Starting main script at: $(date)"
+
+WORKDIR=$(pwd)
+
+# Set working directory to home directory
+export XDG_RUNTIME_DIR=$(mktemp -d)
+cd "${HOME}"
+
+
+#
+# Start Jupyter Notebook Server
+#
+module purge
+
+# 8/8/2022 after the maintenance of grace, .bashrc is no longer automatically executed
+source $HOME/.bashrc
+
+<% if context.module_collection != "" %>
+module restore <%= context.module_collection.strip() %>
+<% end %>
+
+module load miniconda
+
+<% if context.additional_modules != "" %>
+module load <%= context.additional_modules %>
+<% end %>
+
+# get the path to ycrc_default based on the hostname
+hostname=$(hostname)
+case $hostname in
+  *grace*)
+    JULIA_HOME_PREFIX="/vast/palmer/apps/services/ood/share/software"
+    ycrc_default="/vast/palmer/apps/services/ood/grace/var_www_ood_apps/conda/ycrc_default";;
+  *farnam*)
+    ycrc_default="/gpfs/ysm/apps/services/ood/var_www_ood_apps/conda/ycrc_default";;
+  *mccleary*)
+    JULIA_HOME_PREFIX="/vast/palmer/apps/services/ood/share/software"
+    ycrc_default="/vast/palmer/apps/services/ood/mccleary/var_www_ood_apps/conda/ycrc_default";;
+  *ruddle*)
+    ycrc_default="/vast/palmer/apps/services/ood/ruddle/var_www_ood_apps/conda/ycrc_default";;
+  *milgram*)
+    JULIA_HOME_PREFIX="/gpfs/milgram/apps/services/ood/software"
+    ycrc_default="/gpfs/milgram/apps/services/ood/var_www_ood_apps/conda/ycrc_default";;
+  *)
+    JULIA_HOME_PREFIX=""
+    ycrc_default="";;
+esac
+
+<% if context.custom_environment == 'ycrc_default' %>
+conda activate $ycrc_default
+<% else %>
+conda activate <%= context.custom_environment %>
+<% end %>
+
+# deal with IJulia kernel
+JULIA_VER=<%= context.ijulia_kernel %>
+if [ ${JULIA_VER} == 'none' ]; then
+  echo "Starting Jupyter without IJulia kernel."
+  # remove the IJulia kernel
+  rm -rf $HOME/.local/share/jupyter/kernels/julia-*
+  # remove IJulia package to triger rebuiling IJulia kernel when a Julia version is selected
+  rm -rf $HOME/.julia/packages/IJulia
+else
+  <% if context.custom_environment == 'ycrc_default' %>
+  JULIA_VER="julia-1.9.2"
+  <% end %>
+  echo "Starting Jupyter IJulia kernel for Julia $(echo ${JULIA_VER}|cut -d'-' -f2)."
+  JULIA_HOME=${JULIA_HOME_PREFIX}/${JULIA_VER}
+  ln -sf -t $CONDA_PREFIX/lib ${JULIA_HOME}/lib/libjulia.so
+  # install IJulia
+  export PATH=${JULIA_HOME}/bin:${PATH}
+  julia ${WORKDIR}/ijulia.jt
+fi
+
+# Benchmark info
+echo "TIMING - Starting jupyter at: $(date)"
+
+# Launch the Jupyter Notebook Server
+set -x
+jupyter <%= context.jupyterlab_switch == "1" ? "lab" : "notebook" %> --config="${CONFIG_FILE}" <%= context.extra_jupyter_args %>

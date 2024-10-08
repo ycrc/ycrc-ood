@@ -1,0 +1,7 @@
+---
+name: Jupyter (PSYC261_test)
+category: Courses
+subcategory: PSYC261
+role: batch_connect
+description: |
+  This app will launch a Jupyter server on one or more nodes.

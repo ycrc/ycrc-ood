@@ -2,6 +2,9 @@
 
 # 06/08/2022 now we need to load StdEnv since it is no longer provided for interactive session
 #            to prevent 'scp' or 'rsync get bogged down with tons of modules loaded
+# 12/15/2023 Stata GUI shows "!" for icons on the interface in RedHat EL8 on McCleary
+# The solution is to set XDG_DATA_DIRS="/usr/local/share:/usr/share:$XDG_DATA_DIRS" in Stata EB file.
+# https://github.com/easybuilders/easybuild-easyconfigs/issues/11956
 module load StdEnv
 
 export PATH=$(pwd):$PATH

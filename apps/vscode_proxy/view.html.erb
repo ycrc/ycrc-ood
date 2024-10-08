@@ -1,0 +1,9 @@
+Please ensure that your local `$HOME/.ssh/config` file has the following configuration. You only need to do this once,
+as the content won't change with different VSCode proxy connections. 
+
+<pre>
+Host jump-server
+  Hostname <%= `hostname |cut -d. -f2-` %>  User <%= `whoami` %>
+Host vscode-server
+  User <%= `whoami` %>  ProxyCommand ssh jump-server  "nc \$(cat ~/.vscode-host)  22"
+</pre>

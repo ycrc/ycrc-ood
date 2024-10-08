@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+# 06/08/2022 now we need to load StdEnv since it is no longer provided for non-interactive session
+#            to prevent 'scp' or 'rsync get bogged down with tons of modules loaded
+module load StdEnv
+
+# Ensure modules are set to default
+module purge
+
+# Benchmark info
+echo "TIMING - Starting main script at: $(date)"
+
+# Set working directory to home directory
+export XDG_RUNTIME_DIR=$(mktemp -d)
+cd "${HOME}"
+
+# Ensure modules are set to default
+module purge
+
+# 8/8/2022 after the maintenance of grace, .bashrc is no longer automatically executed
+source $HOME/.bashrc
+
+# Prepare 'code-server'
+<% if context.version != "" %>
+module load <%= context.version %>
+<% end %>
+
+# Modify  Proxy Envs
+unset MWI_BASE_URL
+MWI_APP_HOST="0.0.0.0"
+MWI_APP_PORT="$PORT"
+MWI_ENABLE_TOKEN_AUTH="False"
+export MWI_APP_HOST
+export MWI_APP_PORT
+export MWI_ENABLE_TOKEN_AUTH
+
+# Set working directory
+cd "$OOD_WD" || true
+
+# Benchmark info
+echo "TIMING - Starting Matlab Proxy App at: $(date)"
+
+# Run Matlab (uses environment vars rather than config file)
+matlab-proxy-app

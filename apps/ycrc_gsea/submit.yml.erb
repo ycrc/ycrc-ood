@@ -1,0 +1,20 @@
+---
+batch_connect:
+  template: vnc
+script:
+  native: [ "--cpus-per-task",   "<%= bc_num_cores.to_i %>",
+            "--mem-per-cpu",     "<%= bc_amt_mem.to_i %>G" , 
+            "--nodes",           "<%= bc_num_slots.to_i %>",
+            "--partition",       "<%= partitions.strip() %>"         ,
+            <% if num_gpu.to_i > 0 then %>
+            "--gres",            "gpu:<%= num_gpu.to_i %>" , 
+            <% end %>
+            <% if ! reservation.blank? then %>
+            "--reservation",     "<%= reservation.strip() %>",
+            <% end %>
+            <% if ! bc_account.blank? then %>
+            "--account",         "<%= bc_account.strip() %>",
+            <% end %>
+            "--qos",             "interactive",
+            "--job-name",        "ood-gsea"
+          ]

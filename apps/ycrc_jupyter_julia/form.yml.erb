@@ -1,0 +1,177 @@
+# Batch Connect app configuration file
+# if $HOME/ondemand/conda-jupyter-env-list.txt does not exist, run ycrc_conda_env.sh to create it.
+<%
+if not File.exist?(ENV["HOME"]+"/ondemand/conda-jupyter-env-list.txt")
+    `/vast/palmer/apps/bin/ycrc_conda_env.sh update > /dev/null 2>&1`
+end
+require "/share/support/public/ood/ruby/hostspecs.rb"
+host_specs = getHostSpecs()
+libpath = host_specs[:libpath]
+hostname = host_specs[:host]
+
+require libpath+"/process_partitions.rb"
+partitions = processPartitions(libpath)
+%>
+---
+cluster: <%= hostname %>
+
+attributes:
+  custom_environment:
+    widget: select
+    label:  Environment Setup (select the miniconda environment)
+    help: |  
+      - You can create your own jupyter with  
+ 
+              conda create -n myenv jupyter jupyterlab
+
+      - If you have installed or deleted a conda environment, run the following command 
+        in a terminal to update OOD.
+        
+              ycrc_conda_env.sh update
+
+      - For more information about conda, please visit our 
+        [user guide](https://docs.ycrc.yale.edu/clusters-at-yale/guides/conda/#the-miniconda-module). 
+    options: 
+      - [ "ycrc_default", "ycrc_default", data-has-jupyterlab: true ]
+      <%  
+        conda_envs = `/share/support/public/ood/ycrc_conda_env.sh jupyter`.split
+        conda_envs.each do |conda_env|
+          conda_env_split = conda_env.split(":")
+      %>
+      - [ 
+          "<%= conda_env_split[0] %>", 
+          "<%= conda_env_split[0] %>", 
+          data-has-jupyterlab: <%= conda_env_split[1] %> 
+        ]
+      <%
+        end
+      %>    
+ 
+  jupyterlab_switch:
+    widget: check_box
+    label: start jupyterlab instead of jupyter notebook
+
+  bc_num_hours: 
+    widget: "number_field"
+    label: "Number of hours"
+    value: 6
+    min: 1
+
+  bc_num_cores:
+    widget: "number_field"
+    label: "Number of CPU cores per node"
+    value: 1
+    min: 1
+    step: 1
+    help: "The equivalent slurm option is `--cpus-per-task`"
+
+  bc_amt_mem:
+    widget: "number_field"
+    label: "Memory per CPU core in GiB"
+    value: 5
+    min: 1
+    step: 1
+
+  partitions:
+    widget: "select"
+    label: "Partitions"
+    options:
+      <%
+      partitions.each do |partition|
+        fields = partition.split(";")
+      %>
+      - [
+          "<%= fields[0] %>",
+          "<%= fields[1] %>",
+          data-max-hours: <%= fields[2] %>,
+          data-has-gpu: <%= fields[3] %>
+        ]
+      <%
+      end
+      %>
+
+  num_gpu:
+    widget: "number_field"
+    label:  "Number of GPUs per node"
+    help: "Set number of GPUs per node. The minimal value is 1 for partition `gpu`, `gpu-devel`, and `scavenge-gpu`."
+    min: 0
+    max: 8
+
+  reservation:
+    text_field: ""
+    label: "Reservation (optional)"
+
+  advanced_options:
+    widget: "check_box"
+    label: "Check the box to view more options"
+
+  bc_account:
+    label: "Slurm account (optional)"
+    help: "This field is needed **only if** you are working with a group other than your default group.  
+           Leave it blank if you don't know what to provide."
+
+  # Whether Conda extensions will be available within the Jupyter notebook 0==False
+  # see https://docs.continuum.io/anaconda/user-guide/tasks/use-jupyter-notebook-extensions
+  conda_extensions: "0"
+
+  # Any extra command line arguments to feed to the `jupyter notebook ...`
+  # command that launches the Jupyter notebook within the batch job
+  extra_jupyter_args: ""
+ 
+  module_collection:
+    widget: "text_field"
+    label:  "Module collection (optional)"
+    value:  ""
+    help:   "Name of the module collection to restore"
+
+  additional_modules:
+    widget: "text_field"
+    label:  "Additional modules for Jupyter (optional)"
+    value:  ""
+    help:   "Provide addtional modules for Jupyter. Module names are separated by a space."
+
+  advanced_job_options:
+    widget: "text_area"
+    label:  "Additional job options (optional)"
+    value:  ""
+    help:   |
+      Provide additional job options for Slurm, **one option per line**. Options provided here have higher precedence over options specified earlier in the form. 
+
+      Example:
+
+          --constraint=cascadelake
+          --constraint=v100
+
+  ijulia_kernel:
+    widget: "select"
+    label: "Select a Julia version for IJulia Kernel"
+    default: 'none'
+    options:
+      - [ 'none' ]
+      - [ 'julia-1.9.2' ]
+      - [ 'julia-1.8.5' ]
+      - [ 'julia-1.7.3' ]
+      - [ 'julia-1.6.7' ]
+    help: |
+      Add IJulia kernel to Jupyter. Select 'none' if you don't want to enable IJulia Kernel.
+      `ycrc_default` only works with Julia 1.9.2.
+
+form:
+  - custom_environment
+  - jupyterlab_switch
+  - conda_extensions
+  - extra_jupyter_args
+  - bc_num_slots
+  - bc_num_hours
+  - bc_num_cores
+  - bc_amt_mem
+  - partitions
+  - num_gpu
+  - reservation
+  - additional_modules
+  - bc_email_on_started
+  - advanced_options
+  - bc_account
+  - module_collection
+  - advanced_job_options
+  - ijulia_kernel

@@ -2,7 +2,7 @@
 # if $HOME/ondemand/conda-jupyter-env-list.txt does not exist, run ycrc_conda_env.sh to create it.
 <%
 if not File.exist?(ENV["HOME"]+"/ondemand/conda-jupyter-env-list.txt")
-    `/share/support/public/ood/ycrc_conda_env.sh update > /dev/null 2>&1`
+    `/vast/palmer/apps/bin/ycrc_conda_env.sh update > /dev/null 2>&1`
 end
 require "/share/support/public/ood/ruby/hostspecs.rb"
 host_specs = getHostSpecs()
@@ -98,6 +98,10 @@ attributes:
     min: 0
     max: 8
 
+  reservation:
+    text_field: ""
+    label: "Reservation (optional)"
+
   advanced_options:
     widget: "check_box"
     label: "Check the box to view more options"
@@ -136,20 +140,21 @@ attributes:
 
       Example:
 
-          --gres=gpu:gtx1080ti:2           
-          --constraint=E5-2637_v4
+          --constraint=cascadelake
+          --constraint=v100
 
 form:
   - custom_environment
   - jupyterlab_switch
   - conda_extensions
   - extra_jupyter_args
-  - bc_num_slots
+#  - bc_num_slots
   - bc_num_hours
   - bc_num_cores
   - bc_amt_mem
   - partitions
   - num_gpu
+  - reservation
   - bc_email_on_started
   - advanced_options
   - bc_account

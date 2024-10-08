@@ -1,0 +1,7 @@
+---
+name: Jupyter (__COURSE)
+category: Courses
+subcategory: (__COURSE)
+role: batch_connect
+description: |
+  This app will launch a Jupyter server on one or more nodes.

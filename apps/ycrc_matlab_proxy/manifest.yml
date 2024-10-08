@@ -1,0 +1,8 @@
+---
+name: MatLab (Web)
+icon: icon.png
+category: Interactive Apps
+subcategory: Servers
+role: batch_connect
+description: |
+  This app will launch the web server (proxy) version of MATLAB on a compute node. As this is a new feature some parts of the interface, such as the Add-On Manager, do not currently work.

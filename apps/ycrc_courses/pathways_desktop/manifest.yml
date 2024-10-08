@@ -1,0 +1,8 @@
+---
+name: Desktop
+icon: fa://desktop
+category: Courses
+subcategory: MBB711
+role: batch_connect
+description: |
+  This app will launch an interactive desktop on a compute node. 

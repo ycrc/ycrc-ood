@@ -1,0 +1,4 @@
+# Export the module function if it exists
+[[ $(type -t module) == "function" ]] && export -f module
+#10/11/2022: by default SLURM_EXPORT_ENV=NONE. Set it to ALL to allow MPI job submitted from remote desktop running properly
+export SLURM_EXPORT_ENV=ALL

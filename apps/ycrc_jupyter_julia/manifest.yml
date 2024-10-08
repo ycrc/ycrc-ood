@@ -1,0 +1,7 @@
+---
+name: Jupyter (with IJulia) 
+category: Interactive Apps
+subcategory: Servers
+role: batch_connect
+description: |
+  This app will launch a Jupyter server on one or more nodes.

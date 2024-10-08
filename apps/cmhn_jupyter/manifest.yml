@@ -1,0 +1,7 @@
+---
+name: Jupyter (cmhn)
+category: Courses
+subcategory: (cmhn)
+role: batch_connect
+description: |
+  This app will launch a Jupyter server on one or more nodes.

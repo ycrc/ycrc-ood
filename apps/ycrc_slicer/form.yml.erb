@@ -1,0 +1,115 @@
+<%
+app_name = "3D Slicer"
+app_root = "/var/www/ood/apps/modules"+"/"+app_name
+# Retrieve the list of allowable partitions
+require "/share/support/public/ood/ruby/hostspecs.rb"
+host_specs = getHostSpecs()
+libpath = host_specs[:libpath]
+hostname = host_specs[:host]
+require libpath+"/process_partitions.rb"
+partitions = processPartitions(libpath)
+%>
+---
+cluster: <%= hostname %>
+title:   <%= app_name %>
+
+attributes:
+  version:
+    widget: "select"
+    label: <%= app_name %> version
+    options:
+      <% IO.foreach(app_root+"/modules") do |line| %>
+      - [ "<%= line %>" ]
+      <% end %>    
+  bc_vnc_idle: 0
+  desktop: "mate"
+  bc_num_slots: 1
+  bc_num_hours:
+    widget: "number_field"
+    label: "Number of hours"
+    value: 6
+    min: 1
+  bc_num_cores:
+    widget: "number_field"
+    label: "Number of CPU cores per node"
+    value: 1
+    min: 1
+    step: 1
+    help: "The equivalent slurm option is `--cpus-per-task`"
+  bc_amt_mem:
+    widget: "number_field"
+    label: "Memory per CPU core in GiB"
+    value: 5
+    min: 1
+    step: 1
+  partitions:
+    widget: "select"
+    label: "Partitions"
+    options:
+      <%
+      partitions.each do |partition|
+        fields = partition.split(";")
+      %>
+      - [
+          "<%= fields[0] %>",
+          "<%= fields[1] %>",
+          data-max-hours: <%= fields[2] %>,
+          data-has-gpu: <%= fields[3] %>
+        ]
+      <%
+      end
+      %>
+  num_gpu:
+    widget: "number_field"
+    label:  "Number of GPUs per node"
+    help: "Set number of GPUs per node. The minimal value is 1 for partition `gpu`, `gpu-devel`, and `scavenge-gpu`."
+    min: 0
+    max: 8
+  reservation:
+    text_field: ""
+    label: "Reservation (optional)"
+  advanced_options:
+    widget: "check_box"
+    label: "Check the box to view more options"
+  bc_account:
+    label: "Slurm account (optional)"
+    help: "This field is needed ONLY IF you are working with a different group than your default group. Leave it blank if you don't know what to provide."
+  conda_env:
+    widget: "text_field"
+    label:  "Conda environment (optional)"
+    value:  ""
+    help:   "Specify a conda environment."
+  additional_modules:
+    widget: "text_field"
+    label:  "Additional modules for <%= app_name %> (optional)"
+    value:  ""
+    help:   "Provide addtional modules for <%= app_name %>. Module names are separated by a space."
+  advanced_job_options:
+    widget: "text_area"
+    label:  "Additional job options (optional)"
+    value:  ""
+    help:   |
+      Provide additional job options for Slurm, **one option per line**. Options provided here have higher precedence over options specified earlier in the form. 
+
+      Example:
+
+          --constraint=cascadelake
+          --constraint=v100
+
+form:
+  - version
+  - bc_vnc_idle
+  - desktop
+  - bc_num_slots
+  - bc_num_hours
+  - bc_num_cores
+  - bc_amt_mem
+  - partitions
+  - num_gpu
+  - reservation
+  - additional_modules
+  - bc_email_on_started
+  - advanced_options
+  - bc_account
+  - conda_env
+  - advanced_job_options

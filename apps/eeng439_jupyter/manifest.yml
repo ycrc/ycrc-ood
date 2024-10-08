@@ -1,0 +1,7 @@
+---
+name: Jupyter (eeng439)
+category: Courses
+subcategory: eeng439
+role: batch_connect
+description: |
+  This app will launch a Jupyter server on one or more nodes.

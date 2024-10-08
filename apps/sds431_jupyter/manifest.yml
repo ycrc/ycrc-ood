@@ -1,0 +1,7 @@
+---
+name: Jupyter (S&DS 431/631)
+category: Courses
+subcategory: (sds431)
+role: batch_connect
+description: |
+  This app will launch a Jupyter server on one or more nodes.

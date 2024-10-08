@@ -1,0 +1,10 @@
+---
+name: VSCode Proxy
+icon: fa://magic
+category: Interactive Apps
+subcategory: Servers
+role: batch_connect
+description: |
+  This App sets up a proxy for you to launch an ssh extension on a compute node from your local VSCode.
+
+  Before using this App, please follow [this link](https://docs.ycrc.yale.edu/clusters-at-yale/access/ssh/#what-are-ssh-keys) to set up your public key authentication on the cluster.

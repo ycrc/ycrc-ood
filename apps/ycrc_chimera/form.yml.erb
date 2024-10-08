@@ -65,6 +65,9 @@ attributes:
     help: "Set number of GPUs per node. The minimal value is 1 for partition `gpu`, `gpu-devel`, and `scavenge-gpu`."
     min: 0
     max: 8
+  reservation:
+    widget: "text_field"
+    label: "Reservation (optional)"
   advanced_options:
     widget: "check_box"
     label: "Check the box to view more options"
@@ -85,8 +88,8 @@ attributes:
 
       Example:
 
-          --gres=gpu:gtx1080ti:2           
-          --constraint=E5-2637_v4
+          --constraint=cascadelake
+          --constraint=v100
 
 form:
   - version
@@ -97,9 +100,10 @@ form:
   - bc_num_cores
   - bc_amt_mem
   - partitions
+  - reservation
   - num_gpu
+  - additional_modules
   - bc_email_on_started
   - advanced_options
   - bc_account
-  - additional_modules
   - advanced_job_options

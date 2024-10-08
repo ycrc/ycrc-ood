@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+# 06/08/2022 now we need to load StdEnv since it is no longer provided for non-interactive session
+#            to prevent 'scp' or 'rsync get bogged down with tons of modules loaded
+module load StdEnv
+
+# Benchmark info
+echo "TIMING - Starting main script at: $(date)"
+
+# Set working directory to home directory
+export XDG_RUNTIME_DIR=$(mktemp -d)
+cd "${HOME}"
+
+
+#
+# Start Jupyter Notebook Server
+#
+module purge
+
+# 8/8/2022 after the maintenance of grace, .bashrc is no longer automatically executed
+source $HOME/.bashrc
+
+<% if context.module_collection != "" %>
+module restore <%= context.module_collection.strip() %>
+<% end %>
+
+<% if context.additional_modules != "" %>
+module load <%= context.additional_modules %>
+<% end %>
+
+# Benchmark info
+echo "TIMING - Starting jupyter at: $(date)"
+
+# Launch the Jupyter Notebook Server
+set -x
+apptainer run -B /gpfs/gibbs/project/psyc261/shared/julia2:/opt/julia --env "JULIA_DEPOT_PATH=$HOME/julia:/opt/julia" /gpfs/gibbs/project/psyc261/shared/base.sif  /opt/conda/bin/jupyter-notebook --config="${CONFIG_FILE}" <%= context.extra_jupyter_args %>

@@ -1,0 +1,8 @@
+---
+name: RStudio Server (S&DS 100)
+category: Courses
+subcategory: Servers
+role: batch_connect
+description: |
+
+  This app will launch RStudio Server with Singularity on a compute node.

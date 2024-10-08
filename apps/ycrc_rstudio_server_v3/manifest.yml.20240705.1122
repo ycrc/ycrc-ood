@@ -1,0 +1,17 @@
+---
+name: RStudio Server
+category: Interactive Apps
+subcategory: Servers
+role: batch_connect
+description: |
+
+  <b>Changes:</b>
+  <p style="color:red;">
+  <b>RStudio Server</b> now starts an R session in a clean environment and will not save the session when you finish. 
+  If you want to save your session and reuse it next time, please select the checkbox <b>"Start R from your last saved session"</b>
+  </p>
+  <p style="color:orange;">
+  <b>RStudio Server</b> now supports both module R and Conda R.
+  </p> 
+
+  This app will launch RStudio Server with Singularity on a compute node.
